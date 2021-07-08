@@ -1,0 +1,80 @@
+/**
+ * TerminalType.java
+ *
+ * This file was auto-generated from WSDL
+ * by the Apache Axis 1.4 Apr 22, 2006 (06:55:48 PDT) WSDL2Java emitter.
+ */
+
+package com.paymentgateway.elementexpress.reporting;
+
+public class TerminalType implements java.io.Serializable {
+    private java.lang.String _value_;
+    private static java.util.HashMap _table_ = new java.util.HashMap();
+
+    // Constructor
+    protected TerminalType(java.lang.String value) {
+        _value_ = value;
+        _table_.put(_value_,this);
+    }
+
+    public static final java.lang.String _Unknown = "Unknown";
+    public static final java.lang.String _PointOfSale = "PointOfSale";
+    public static final java.lang.String _ECommerce = "ECommerce";
+    public static final java.lang.String _MOTO = "MOTO";
+    public static final java.lang.String _FuelPump = "FuelPump";
+    public static final java.lang.String _ATM = "ATM";
+    public static final java.lang.String _Voice = "Voice";
+    public static final TerminalType Unknown = new TerminalType(_Unknown);
+    public static final TerminalType PointOfSale = new TerminalType(_PointOfSale);
+    public static final TerminalType ECommerce = new TerminalType(_ECommerce);
+    public static final TerminalType MOTO = new TerminalType(_MOTO);
+    public static final TerminalType FuelPump = new TerminalType(_FuelPump);
+    public static final TerminalType ATM = new TerminalType(_ATM);
+    public static final TerminalType Voice = new TerminalType(_Voice);
+    public java.lang.String getValue() { return _value_;}
+    public static TerminalType fromValue(java.lang.String value)
+          throws java.lang.IllegalArgumentException {
+        TerminalType enumeration = (TerminalType)
+            _table_.get(value);
+        if (enumeration==null) throw new java.lang.IllegalArgumentException();
+        return enumeration;
+    }
+    public static TerminalType fromString(java.lang.String value)
+          throws java.lang.IllegalArgumentException {
+        return fromValue(value);
+    }
+    public boolean equals(java.lang.Object obj) {return (obj == this);}
+    public int hashCode() { return toString().hashCode();}
+    public java.lang.String toString() { return _value_;}
+    public java.lang.Object readResolve() throws java.io.ObjectStreamException { return fromValue(_value_);}
+    public static org.apache.axis.encoding.Serializer getSerializer(
+           java.lang.String mechType, 
+           java.lang.Class _javaType,  
+           javax.xml.namespace.QName _xmlType) {
+        return 
+          new org.apache.axis.encoding.ser.EnumSerializer(
+            _javaType, _xmlType);
+    }
+    public static org.apache.axis.encoding.Deserializer getDeserializer(
+           java.lang.String mechType, 
+           java.lang.Class _javaType,  
+           javax.xml.namespace.QName _xmlType) {
+        return 
+          new org.apache.axis.encoding.ser.EnumDeserializer(
+            _javaType, _xmlType);
+    }
+    // Type metadata
+    private static org.apache.axis.description.TypeDesc typeDesc =
+        new org.apache.axis.description.TypeDesc(TerminalType.class);
+
+    static {
+        typeDesc.setXmlType(new javax.xml.namespace.QName("https://reporting.elementexpress.com", "TerminalType"));
+    }
+    /**
+     * Return type metadata object
+     */
+    public static org.apache.axis.description.TypeDesc getTypeDesc() {
+        return typeDesc;
+    }
+
+}

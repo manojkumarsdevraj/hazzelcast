@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="package" name="ecommerce_bond">
+	<target name="help" depends="all">
+		<echo>You can use the following targets:</echo>
+		<echo></echo>
+		<echo>  help    : (default) Prints this message </echo>
+		<echo>  all     : Cleans, compiles, and packages application</echo>
+		<echo>  clean   : Deletes work directories</echo>
+		<echo>  compile : Compiles servlets into class files</echo>
+		<echo>  dist    : Packages artifacts into a deployable WAR</echo>
+		<echo></echo>
+		<echo>For example, to clean, compile, and package all at once, run:</echo>
+		<echo>prompt> ant all </echo>
+	</target>
+	<property environment="env" />
+	<property name="TOMCAT_HOME" value="EcommerceConfig/" />
+	<property name="lib.dir" value="EcommerceConfig/lib" />
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.8" />
+	<property name="source" value="1.8" />
+	<property name="project.name" value="${ant.project.name}" />
+	<property name="project.web.dir" value="ecommerce/WebContent" />
+	<property name="project.src.dir" value="ecommerce/src" />
+	<property name="project.main.dir" value="ecommerce/" />
+	<property name="project.classes.dir" value="ecommerce/build/classes" />
+	<property name="project.lib.dir" value="${project.web.dir}/WEB-INF/lib" />
+	<property name="project.webinflib.dir" value="EcommerceConfig/WEB-INF/lib" />
+	<property name="project.war" value="${project.name}.war" />
+	<property name="project.ear" value="${project.name}.ear" />
+	<property name="project.runtime.lib" value="${TOMCAT_HOME}/lib" />
+	<property name="project.deploy.location" value="/" />
+	<property name="cms.ejb.dir" value="EcommerceV2-CMS-Core/EcommerceCMS/ejbModule" />
+	<property name="cms.build.classes.dir" value="EcommerceV2-CMS-Core/EcommerceCMS/build/classes" />
+	<path id="classpath.runtime">
+		<fileset dir="${project.runtime.lib}" includes="*.jar" />
+		<fileset dir="${lib.dir}" includes="**/*.jar"/>
+	</path>
+	<path id="classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar"/>
+	</path>
+	<path id="classpath.lib">
+		<fileset dir="${project.lib.dir}" includes="*.jar" />
+		<fileset dir="${lib.dir}" includes="**/*.jar"/>
+	</path>
+	<path id="compile.classpath">
+		<fileset dir="${project.runtime.lib}">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="*.jar"/>
+		</fileset>
+		<pathelement location="${project.runtime.lib}"/>
+		<fileset dir="${project.runtime.lib}">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	<target name="all" depends="versioninfo,clean,compile" description="Clean work dirs, then compile and create a WAR">
+		<echo>Delete old work and dist directories</echo>
+	</target>
+	<target name="clean" description="Delete old work and dist directories">
+		<echo>Delete old work and dist directories </echo>
+		<delete dir="${erp.build.classes.dir}/work"/>
+		<delete dir="${erp.build.classes.dir}"/>
+		<delete dir="${cms.build.classes.dir}" />
+		<delete dir="${project.classes.dir}" />
+		<delete dir="ecommerce.war" />
+	</target>
+	<target name="versioninfo" description="version info">
+		<propertyfile file="build.properties" comment="Build properties">
+			<entry key="builddate" type="date" value="now"/>
+			<entry key="buildnumber" value="${env.BUILD_NUMBER}"/>
+			<entry key="buildname" value="ecommerce"/>
+			<entry key="svnversion" value="${env.SVN_REVISION}"/>
+		</propertyfile>
+	</target>
+	<target name="prepare" depends="clean" description="Create working dirs and copy static files to work dir">
+		<mkdir dir="ecommerce.war"/>
+	</target>
+	<target name="compile" depends="prepare" description="Compile Java sources and copy to WEB-INF/classes dir"></target>
+	<path id="project.classpath">
+		<pathelement location="${project.classes.dir}" />
+		<path refid="classpath.runtime" />
+		<path refid="classpath.lib" />
+	</path>
+	<target name="init">
+		<mkdir dir="${project.classes.dir}" />
+		<copy includeemptydirs="false" todir="${project.classes.dir}">
+			<fileset dir="${project.src.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+	<target name="cmscomplile" description="Create Eclipse EJV file for binary distribution">
+		<mkdir dir="${cms.build.classes.dir}" />
+		<javac srcdir="${cms.ejb.dir}" includeantruntime="false" destdir="${cms.build.classes.dir}" encoding="CP1252">
+			<classpath refid="compile.classpath"/>
+			<classpath refid="project.classpath"/>
+		</javac>
+		<copy todir="${cms.build.classes.dir}">
+			<fileset dir="${cms.ejb.dir}" excludes="**/*.java"/>
+		</copy>
+	</target>
+	<target depends="cmscomplile" name="cms" description="Create Eclipse EJV file for binary distribution">
+		<jar jarfile="${cms.build.classes.dir}/CMS.jar" basedir="${cms.build.classes.dir}"/>
+	</target>
+	<target depends="help,init" name="build" description="Compiling all java files in ${project.src.dir}">
+		<echo message="${project.name}: ${ant.file}" />
+		<javac debug="true" debuglevel="${debuglevel}" destdir="${project.classes.dir}" includeantruntime="false" source="${source}" target="${target}" encoding="CP1252">
+			<src path="${project.src.dir}" />
+			<src path="${cms.ejb.dir}" />
+			<classpath refid="project.classpath" />
+		</javac>
+	</target>
+	<target depends="build" name="package" description="Packagign all files into ${project.war}">
+		<war file="${project.war}" index="true" needxmlfile="fasle">
+			<classes dir="${project.classes.dir}" />
+			<lib dir="${project.webinflib.dir}" />
+			<fileset dir="${project.web.dir}">
+				<include name="**/*.*" />
+			</fileset>
+		</war>
+		<antcall target="cms"/>
+		<unzip src="${project.war}" dest="ecommerce.war" />
+		<copy todir="ecommerce.war/WEB-INF/lib" overwrite="true">
+			<fileset file="${cms.build.classes.dir}/CMS.jar"/>
+		</copy>
+		<copy todir="ecommerce.war/" overwrite="true">
+			<fileset file="${project.main.dir}/healthcheck.html"/>
+		</copy>
+		<zip destfile="ecommerce.war.zip" basedir="ecommerce.war" update="true"/>
+		<delete dir="${project.war}"/>
+		<mkdir dir="ecommerce.war"/>
+		<unzip src="ecommerce.war.zip" dest="ecommerce.war" />
+	</target>
+</project>

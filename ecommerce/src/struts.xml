@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+	<constant name="struts.devMode" value="false" />
+	<constant name="struts.custom.i18n.resources" value="ApplicationResources" />
+	<constant name="struts.action.excludePattern" value="/null" />
+	<constant name="struts.action.excludePattern" value="/*.slt" />
+	<constant name="struts.multipart.maxSize" value="6000000" />
+	<package name="default" extends="struts-default">
+		<interceptors>
+			<interceptor name="mylogging" class="com.unilog.security.UserSession"/>
+			<interceptor name="userAuthority" class="com.unilog.security.UserAuthority"/>
+			<interceptor name="xssInterceptor" class="com.unilog.security.XSSInterceptor"/>
+			<interceptor-stack name="authorizationStack">
+				<interceptor-ref name="userAuthority" />
+			</interceptor-stack>
+			<interceptor-stack name="loggingStack">
+				<interceptor-ref name="mylogging" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+			<interceptor-stack name="xssSecurityStack">
+				<interceptor-ref name="xssInterceptor" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+			<interceptor-stack name="defaultStack">
+				<interceptor-ref name="params">
+					<param name="excludeParams">cxmlParam*</param>
+				</interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+		<global-results>
+			<result name="unAuthorized" type="redirectAction">LoginLink</result>
+			<result name="whyWeDoIt" type="redirect">/whyWeDoIt</result>
+			<result name="SESSIONEXPIRED" type="redirect">/</result>
+			<result name="userLogin" type="httpheader">
+				<param name="status">301</param>
+				<param name="headers.Location">/Login</param>
+			</result>
+		</global-results>
+		<action name="Welcome" class="com.unilog.defaults.UniversalLinks" method="Welcome">
+			<interceptor-ref name="loggingStack"/>
+			<result name="welcome" type="velocity">/TemplateLoader.vm</result>
+			<result name="redirectLanding" type="redirect">${redirectLandingUrl}</result>
+		</action>
+		<action name="*Link" method="{1}" class="com.unilog.defaults.UniversalLinks">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="welcome" type="redirectAction">Welcome</result>
+			<result name="approveCart" type="redirect">/SavedGroups/ApproveCart</result>
+		</action>
+		<action name="LoginPage" class="com.unilog.defaults.UniversalLinks" method="Login">
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="ForgotPassword" class="com.unilog.defaults.UniversalLinks" method="Forgot">
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="*Page" method="{1}" class="com.unilog.products.ProductsAction">
+			<interceptor-ref name="loggingStack"/>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="QuoteCart" type="redirectAction">QuoteCartPage</result>
+			<result name="ShoppingCart" type="redirectAction">shoppingCartPage</result>
+			<result name="singleItem" type="redirect">/${itemPriceId}/product/${fromProductMode}/${itemUrlSingle}</result>
+			<result name="MyProductsPage" type="redirect">/ProductGroup/Product?savedGroupId=${savedGroupId}&amp;assignedShipTo=${assignedShipTo}&amp;shared=${shared}&amp;resultPage=${resultPage}</result>
+			<result name="SavedCartPage" type="redirect">/ProductGroup/Cart?savedGroupId=${savedGroupId}</result>
+			<result name="ToProductPage" type="redirectAction">Products</result>
+			<result name="ToSavedGroup" type="redirect">getSavedGroupsPage.action?reqType=${reqType}&amp;listWithZeroItems=${listWithZeroItems}</result>
+			<result name="checkout" type="redirectAction">checkout</result>
+			<result name="deleteRfqCart" type="redirect">/RequestForQuote</result>
+			<result name="searchResult" type="redirect">/Search/${keyWord}</result>
+			<result name="SESSIONEXPIRED" type="redirect">/</result>
+			<result name="TostaticPage" type="redirect">/Page/${pageName}</result>
+		</action>
+		<action name="*Unit" method="{1}" class="com.unilog.users.UsersAction">
+			<interceptor-ref name="loggingStack"/>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="Products" type="redirectAction">Products</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="abandonedCartLogin" type="redirect">/doLogin.action?loginId=${username}&amp;loginPassword=${password}&amp;fromPageValue=${fromPageValue}</result>
+			<result name="abandonedCartWLCart" type="redirect">/shoppingCartPage.action?sessionId=${sessionId}</result>
+			<result name="addressSync" type="redirectAction">getAddressesAddressSync?frPage=${pageUrl}</result>
+			<result name="SESSIONEXPIRED" type="redirect">/</result>
+		</action>
+		<action name="*Sale" method="{1}" class="com.unilog.sales.SalesAction">
+			<interceptor-ref name="loggingStack"/>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="QuoteCart" type="redirectAction">QuoteCartPage</result>
+			<result name="auConfirmOrder" type="redirect">/TemplateLoader.vm</result>
+			<result name="printInvoices" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirect">/</result>
+		</action>
+		<action name="*App" method="{1}" class="com.unilog.servlets.AppSpecific">
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="*Roll" method="{1}" class="com.unilog.users.NewUserRegisterUtility">
+			<interceptor-ref name="xssSecurityStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="Products" class="com.unilog.products.ProductsAction" method="productPage">
+			<interceptor-ref name="loggingStack"/>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="singleItem" type="redirect">/${itemPriceId}/product/${itemUrlSingle}</result>
+		</action>
+		<action name="Category" class="com.unilog.products.ProductsAction" method="taxonomyLevelFilter">
+			<interceptor-ref name="loggingStack"/>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ItemList" type="velocity">/TemplateLoader.vm</result>
+			<result name="singleItem" type="redirect">/${itemPriceId}/product/${itemUrlSingle}</result>
+			<result name="TostaticPage" type="redirect">/Page/${pageName}</result>
+		</action>
+		<action name="changeLanguage" class="com.unilog.users.UsersAction" method="changeLanguage">
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="checkout" class="com.unilog.users.UsersAction" method="getUserAddress">
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="redirectCart" type="redirectAction">shoppingCartPage</result>
+		</action>
+		<action name="RetailReg" class="com.unilog.users.NewUserRegisterUtility" method="RetailCustomerRegistration">
+		    <interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="CommercialReg" class="com.unilog.users.NewUserRegisterUtility" method="CommertialCustomerRegistration">
+			<interceptor-ref name="xssSecurityStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="OnAccountReg" class="com.unilog.users.NewUserRegisterUtility" method="OnAccountExistingCustomerRegistration">
+			<interceptor-ref name="xssSecurityStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="ExistingReg" class="com.unilog.users.NewUserRegisterUtility" method="ExistingCustomerRegistration">
+			<interceptor-ref name="xssSecurityStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="FirstTimeOrderReg" class="com.unilog.users.NewUserRegisterUtility" method="RegisterNewContact">
+			<interceptor-ref name="xssSecurityStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="FirstTimeOrderValidateReg" class="com.unilog.users.NewUserRegisterUtility" method="RegisterNewContactAccountValidate">
+		    <interceptor-ref name="xssSecurityStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+
+		<action name="WLRegistration" class="com.unilog.users.NewUserRegisterUtility" method="WithoutLoginCheckoutUserRegistration">
+			<interceptor-ref name="xssSecurityStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="CreditApplicationRequest" class="com.unilog.users.NewUserRegisterUtility" method="NewCommertialCustomerCreditApplicationRegistrationRequest">
+		    <interceptor-ref name="xssSecurityStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="doLogin" class="com.unilog.users.UserLogin">
+			<result name="input" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="redirectAction">getAddresses?frPage=${pageUrl}</result>
+			<result name="addressSync" type="redirectAction">getAddressesAddressSync?frPage=${pageUrl}</result>
+			<result name="jobAccounts" type="redirectAction">getJobAccountsUnit.action</result>
+			<result name="firstLogin" type="velocity">/TemplateLoader.vm</result>
+			<result name="error" type="velocity">/TemplateLoader.vm</result>
+			<result name="checkout" type="redirectAction">checkout</result>
+			<result name="checkouterror" type="velocity">LoginLink</result>
+			<result name="erpDown" type="velocity">/TemplateLoader.vm</result>
+			<result name="changePasswordOnLogin" type="redirectAction">doLogOff.action?lType=${renderContent}</result>
+		</action>
+		<action name="getAddresses" class="com.unilog.users.UsersAction" method="getShippingInfo">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="sessionExpire">true</param>
+			</result>
+			<result name="Products" type="redirectAction">Products</result>
+			<result name="UserAdress" type="redirect">UserAdressUnit.action</result>
+			<result name="shoppingCart" type="redirect">Cart</result>
+			<result name="redirectUrl" type="redirect">${HOOK_URL}</result>
+		</action>
+		<action name="getAddressesAddressSync" class="com.unilog.users.UsersAction" method="getShippingInfoAddressSync">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="sessionExpire">true</param>
+			</result>
+			<result name="Products" type="redirectAction">Products</result>
+			<result name="UserAdress" type="redirect">UserAdressUnit.action</result>
+			<result name="shoppingCart" type="redirect">Cart</result>
+			<result name="redirectUrl" type="redirect">${HOOK_URL}</result>
+		</action>
+		<action name="assignShipEntity" class="com.unilog.users.UsersAction" method="assignShipEntity">
+			<result name="success" type="redirectAction">Products</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="SaveAndSendMail" class="com.unilog.customform.SaveAndSendMail" method="execute">
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="doLogOff" class="com.unilog.users.Logoff">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="redirectAction">Welcome</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="LoginPage" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="result">${renderContent}</param>
+			</result>
+		</action>
+		<action name="processCheckout" class="com.unilog.sales.SalesAction" method="saveSalesOrder">
+			<interceptor-ref name="loggingStack"/>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="redirectAction">
+				<param name="actionName">orderConfirmation</param>
+				<param name="salesOrderId">${salesOrderId}</param>
+				<param name="type">${type}</param>
+			</result>
+			<result name="SESSIONEXPIRED" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="sessionExpire">true</param>
+			</result>
+		</action>
+		<action name="processCheckoutAjax" class="com.unilog.sales.SalesAction" method="saveSalesOrderAjax">
+			<interceptor-ref name="loggingStack"/>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="redirectAction">
+				<param name="actionName">orderConfirmation</param>
+				<param name="salesOrderId">${salesOrderId}</param>
+				<param name="type">${type}</param>
+			</result>
+			<result name="SESSIONEXPIRED" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="sessionExpire">true</param>
+			</result>
+		</action>
+		<action name="processCheckoutAU" class="com.unilog.sales.SalesAction" method="auSubmitOrder">
+			<interceptor-ref name="loggingStack"/>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="redirectAction">
+				<param name="actionName">orderConfirmation</param>
+				<param name="salesOrderId">${salesOrderId}</param>
+				<param name="type">${type}</param>
+			</result>
+			<result name="SESSIONEXPIRED" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="sessionExpire">true</param>
+			</result>
+		</action>
+		<action name="orderConfirmation" class="com.unilog.sales.SalesAction" method="orderConfirmation">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="orderSubApp" type="velocity">appOrderConfirmation</result>
+			<result name="SESSIONEXPIRED" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="sessionExpire">true</param>
+			</result>
+		</action>
+		<action name="staticPages" class="com.unilog.defaults.StaticPage" method="staticPage">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="staticPage" class="com.unilog.users.UsersAction" method="staticPage">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="Location" class="com.unilog.maplocation.BranchLocation" method="Location">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="StoreList" class="com.unilog.maplocation.BranchLocation" method="storeList">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="WarehouseCode" class="com.unilog.maplocation.BranchLocation" method="setWareHouseCodeSession">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="nearestLocationBasedOnZipCode" class="com.unilog.maplocation.BranchLocation" method="nearestLocationBasedOnZipCode">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="*Map" method="{1}" class="com.unilog.maplocation.BranchLocation">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+
+		<action name="customTable" class="com.unilog.customfields.CustomFieldAction" method="customTableField">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="modelLookUp" class="com.unilog.customfields.CustomFieldAction" method="modelLookUp">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="modelLookUpDetail" class="com.unilog.customfields.CustomFieldAction" method="modelLookUpDetail">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="navigationMenuApi" class="com.unilog.customfields.CustomFieldAction" method="navigationMenu">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="rollerMenuApi" class="com.unilog.customfields.CustomFieldAction" method="rollerNavigationMenu">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="*Widget" method="{1}" class="com.unilog.api.widget.WidgetApi">
+			<interceptor-ref name="loggingStack"/>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="bannerApi" class="com.unilog.cmsmanagement.CmsManagementAction" method="bannerTemplate">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="*RC" method="{1}" class="com.unilog.rockwell.RockwellPunchout">
+			<interceptor-ref name="loggingStack"/>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="addtocart" type="redirectAction">
+				<param name="actionName">shoppingCartPage</param>
+			</result>  
+		</action>
+		<action name="*Mail" method="{1}" class="com.unilog.mail.SendThisPage">
+			<interceptor-ref name="loggingStack"/>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirect">/</result>
+		</action>
+		<!--  CMS V2 Releated Start -->
+		<action name="*Cms" method="{1}" class="com.unilog.cmsmanagement.CMSAction">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="framePage" type="velocity">/FrameLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirect">/</result>
+		</action>
+		<!--  CMS V2 Releated End -->
+		<action name="*Reg" method="{1}" class="com.unilog.ecommerce.user.action.Registration">
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="processOrder" class="com.unilog.sales.SalesAction" method="orderSubmit">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="sessionExpire">true</param>
+			</result>
+		</action>
+		<action name="processMultiOrder" class="com.unilog.sales.SalesAction" method="multiOrderSubmit">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="sessionExpire">true</param>
+			</result>
+		</action>
+		<action name="processGuestOrder" class="com.unilog.sales.SalesAction" method="guestOrderSubmit">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirectAction">
+				<param name="actionName">LoginLink</param>
+				<param name="sessionExpire">true</param>
+			</result>
+		</action>
+		<action name="punchoutListDisplay" class="com.unilog.products.ProductsAction" method="shoppingCart">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="cxmlPunchout" class="com.unilog.users.UsersAction" method="validateCxmlUser">
+			<result name="success" type="redirectAction">getAddresses</result>
+			<result name="welcome" type="redirectAction">Welcome</result>
+			 <result name="Products" type="redirectAction">Products</result>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="ocipunchout" class="com.unilog.users.UsersAction" method="validateSapUser">
+			<result name="success" type="redirectAction">getAddresses</result>
+			<result name="welcome" type="redirectAction">Welcome</result>
+			<result name="Products" type="redirectAction">Products</result>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="punchoutOrder" class="com.unilog.sales.SalesAction" method="savePunchoutOrder">
+			<result name="success" type="redirectAction">getAddresses</result>
+			<result name="welcome" type="redirectAction">Welcome</result>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="punchoutOrderMessage" class="com.unilog.sales.SalesAction" method="punchoutOrderMessage">
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<action name="ReloadSystemConfig" class="com.unilog.defaults.ReloadEcommerceSettings" method="ReloadSystemConfig">
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+		</action>
+		<!-- Punchout Config -->
+		<action name="*Punchout" method="{1}" class="com.unilog.punchout.PunchoutAction">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="framePage" type="velocity">/FrameLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirect">/</result>
+		</action>
+		<!-- Punchout Config End -->
+		<action name="*customUtil" method="{1}" class="com.unilog.utility.CustomServiceUtility">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>  
+		</action>
+		<action name="*paymentUtil" method="{1}" class="com.paymentgateway.paytrace.action.PaymentResponse">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>  
+		</action>
+		<action name="*SC" method="{1}" class="com.unilog.searchconfig.SearchConfigAction">
+			<result name="success" type="velocity">/TemplateLoader.vm</result>  
+		</action>
+		<action name="getServiceInfo" class="com.unilog.maplocation.BranchLocation" method="getServiceInfo">
+			<interceptor-ref name="loggingStack"/>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+		</action>		
+		<action name="reCaptcha" class="com.unilog.captcha.GoogleRecaptchaV3" method="isValid">
+            <interceptor-ref name="loggingStack"/>
+            <result name="success" type="velocity">/TemplateLoader.vm</result>
+        </action>
+		<action name="*VMI" method="{1}" class="com.unilog.products.VMICart">
+			<interceptor-ref name="loggingStack"/>
+			<result name="none" type="velocity">/TemplateLoader.vm</result>
+			<result name="success" type="velocity">/TemplateLoader.vm</result>
+			<result name="ResultLoader" type="velocity">/TemplateLoader.vm</result>
+			<result name="SESSIONEXPIRED" type="redirect">/</result>
+		</action>
+	</package>
+	<bean class="org.apache.struts2.views.velocity.VelocityManager" name="VelocityManager" optional="true" />
+</struts>

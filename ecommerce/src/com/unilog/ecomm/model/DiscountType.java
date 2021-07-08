@@ -1,0 +1,7 @@
+package com.unilog.ecomm.model;
+
+public enum DiscountType {
+	
+	USER_SPECIFIC,CUSTOMER_SPECIFIC,ALL_USER,WAREHOUSE_SPECIFIC, CATAGORY_SPECIFIC,ORDER_SPECIFIC,FREE_SHIPPING; 
+
+}

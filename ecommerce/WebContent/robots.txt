@@ -1,0 +1,62 @@
+User-agent: *
+Disallow: /
+
+## Disallow pattern for product List page 
+Disallow: /*searchPage.action*
+Disallow: /*keyWord*
+Disallow: /*keyWordTxt*
+Disallow: /*narrowKeyword*
+Disallow: /*pageViewMode*
+Disallow: /*sortBy*
+Disallow: /*resultPage*
+Disallow: /*attrFilterList*
+Disallow: /SearchResult*
+Disallow: /*Search*
+Disallow: /*search*
+
+
+## Pages to block for crawler 
+Disallow: /advancedSearch*
+Disallow: /ForgotLink.action*
+Disallow: /AFP*
+Disallow: /DFP*
+Disallow: /Compare*
+Disallow: /QuickCart*
+Disallow: /WLCheckout*
+Disallow: /QuickCartStandard*
+Disallow: /LoadShoppingList*
+Disallow: /guestOrderConfirmation*
+Disallow: /Global*
+
+
+## File blocked for crawler 
+Disallow: /*.pdf$
+Disallow: /*.PDF$
+
+
+## Noindex pattern for product List page 
+Noindex: /*searchPage.action*
+Noindex: /*keyWord*
+Noindex: /*keyWordTxt*
+Noindex: /*narrowKeyword*
+Noindex: /*pageViewMode*
+Noindex: /*sortBy*
+Noindex: /*resultPage*
+Noindex: /*attrFilterList*
+Noindex: /SearchResult*
+Noindex: /*Search*
+Noindex: /*search*
+
+
+## Pages to block for crawler 
+Noindex: /advancedSearch*
+Noindex: /ForgotLink.action*
+Noindex: /AFP*
+Noindex: /DFP*
+Noindex: /Compare*
+Noindex: /QuickCart*
+Noindex: /WLCheckout*
+Noindex: /QuickCartStandard*
+Noindex: /LoadShoppingList*
+Noindex: /guestOrderConfirmation*
+Noindex: /Global*

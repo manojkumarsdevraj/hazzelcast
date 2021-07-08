@@ -1,0 +1,71 @@
+stages:
+  - code_qc
+  - build_application
+  - save_build
+  - unit-test
+services:
+  - docker:dind
+variables:
+  CMS_VERSION: "CMS-7.10.0"
+  ECOMM_CONFIG: "EcommerceBond"
+  JBOSS_BRANCH: "Ecommerce"
+quality_check:
+    image: jamesdbloom/docker-java8-maven
+    stage: code_qc
+    script:
+      - git clone -b ${ECOMM_CONFIG} --single-branch  https://gitlab-ci-token:${CI_JOB_TOKEN}@hub.cimm2.com/Unilog/Configuration/EcommerceConfig.git
+      - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@hub.cimm2.com/application/SonarScanner.git
+      - SonarScanner/bin/sonar-scanner -Dsonar.host.url=https://sonarqube.cimm2.com -Dsonar.sources=${SONAR_SOURCES} -Dsonar.exclusions=ecommerce/src/com/unilog/api/bronto/*.java,ecommerce/src/com/unilog/punchout/jaxb/,ecommerce/src/com/fedex/ -Dsonar.source=java -Dsonar.sourceEncoding=UTF-8 -Dsonar.projectName=${CI_PROJECT_NAME} -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.login=${SONARQUBE_TOKEN} -Dsonar.projectVersion=$CI_BUILD_ID -Dsonar.branch=$CI_BUILD_REF_NAME
+    allow_failure: true  
+build_application:
+  before_script:
+    - apt-get update && apt-get install -y git
+    - apt-get update && apt-get install -y unzip
+  stage: build_application
+  image: frekele/ant:1.10.2-jdk8u172
+  only:
+    - tags
+    - Stage@Unilog/EcommerceBond
+    - Production@Unilog/EcommerceBond
+  script:
+    - git clone -b ${ECOMM_CONFIG} --single-branch  https://gitlab-ci-token:${CI_JOB_TOKEN}@hub.cimm2.com/Unilog/Configuration/EcommerceConfig.git
+    - git clone -b ${CMS_VERSION} --single-branch https://gitlab-ci-token:${CI_JOB_TOKEN}@hub.cimm2.com/Unilog/EcommerceV2-CMS-Core.git
+    - cp -r EcommerceConfig/build.xml .
+    - ant
+  artifacts:
+    paths:
+      - ecommerce.war
+      - ecommerce.war/WEB-INF/lib/CMS.jar
+build_image:
+    before_script:
+      - apt-get update && apt-get install -y git 
+      - apt-get update && apt-get install -y unzip
+    services:
+      - docker:dind
+    stage: save_build
+    image: gitlab/dind:latest
+    only:
+      - tags
+      - Stage@Unilog/EcommerceBond
+      - Production@Unilog/EcommerceBond
+    script:
+      - echo "$DEPLOY_BOT_ECOSYSTEM_CORE" > key.json
+      - git clone -b ${ECOMM_CONFIG} --single-branch  https://gitlab-ci-token:${CI_JOB_TOKEN}@hub.cimm2.com/Unilog/Configuration/EcommerceConfig.git
+      - git clone -b ${JBOSS_BRANCH} --single-branch  https://gitlab-ci-token:${CI_JOB_TOKEN}@hub.cimm2.com/Unilog/application/JBoss-5.1.0.GA.git
+      - cp -r EcommerceConfig/Dockerfile .
+      - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.cimm2.com
+      - docker build -t gcr.io/ecosystem-core/${CI_PROJECT_PATH,,}:${CI_COMMIT_REF_NAME} .
+      - docker login -u _json_key -p "$(cat key.json)"  https://gcr.io
+      - docker push gcr.io/ecosystem-core/${CI_PROJECT_PATH,,}:${CI_COMMIT_REF_NAME}
+gcs_push:
+  stage: save_build
+  image: google/cloud-sdk
+  before_script:
+    - echo "$DEPLOY_BOT_ECOSYSTEM_CORE" > username_eco.json
+    - gcloud auth activate-service-account --key-file username_eco.json
+  script:
+    - gsutil -m cp -r ecommerce.war gs://ecosystem-core/${CI_PROJECT_PATH,,}/${CI_COMMIT_REF_NAME}/
+  only:
+    - tags
+    - Stage@Unilog/EcommerceBond
+    - Production@Unilog/EcommerceBond
