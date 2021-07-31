@@ -1,5 +1,4 @@
 stages:
-  - code_qc
   - build_application
   - save_build
   - unit-test
@@ -9,14 +8,6 @@ variables:
   CMS_VERSION: "CMS-7.10.0"
   ECOMM_CONFIG: "EcommerceBond"
   JBOSS_BRANCH: "Ecommerce"
-quality_check:
-    image: jamesdbloom/docker-java8-maven
-    stage: code_qc
-    script:
-      - git clone -b ${ECOMM_CONFIG} --single-branch  https://gitlab-ci-token:${CI_JOB_TOKEN}@hub.cimm2.com/Unilog/Configuration/EcommerceConfig.git
-      - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@hub.cimm2.com/application/SonarScanner.git
-      - SonarScanner/bin/sonar-scanner -Dsonar.host.url=https://sonarqube.cimm2.com -Dsonar.sources=${SONAR_SOURCES} -Dsonar.exclusions=ecommerce/src/com/unilog/api/bronto/*.java,ecommerce/src/com/unilog/punchout/jaxb/,ecommerce/src/com/fedex/ -Dsonar.source=java -Dsonar.sourceEncoding=UTF-8 -Dsonar.projectName=${CI_PROJECT_NAME} -Dsonar.projectKey=${SONAR_PROJECT_KEY} -Dsonar.login=${SONARQUBE_TOKEN} -Dsonar.projectVersion=$CI_BUILD_ID -Dsonar.branch=$CI_BUILD_REF_NAME
-    allow_failure: true  
 build_application:
   before_script:
     - apt-get update && apt-get install -y git
